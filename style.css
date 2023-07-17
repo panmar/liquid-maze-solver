@@ -1,0 +1,56 @@
+html,
+body,
+h1 {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+    font-weight: bold;
+    padding-bottom: 10pt;
+}
+
+html {
+    background-color: hsl(212, 16%, 16%);
+    color: #c5c5c5;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+}
+
+#canvas {
+    background-color: rgb(23, 22, 22);
+    margin: auto;
+    padding: 0;
+	width: 80%;
+    height: 75vh;
+    outline: 2px solid #000;
+    border: none;
+}
+
+/* canvas {
+    width: 500;
+    height: 500;
+} */
+
+#control-panel {
+    margin: auto;
+    padding-top: 10pt;
+    width: 100%;
+    max-width: 80ch;
+    display: flex;
+    justify-content: center;
+}
+
+button {
+    margin: 10pt;
+    padding: 7pt;
+    font-size: medium;
+}
