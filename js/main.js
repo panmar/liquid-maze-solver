@@ -1,6 +1,6 @@
 const WALL_CELL = 0;
 const EMPTY_CELL = 1;
-const CELL_RADIUS = 30;
+const CELL_RADIUS = 20;
 const LIQUID_RADIUS = 6;
 
 const generate_maze = (width, height) => {
