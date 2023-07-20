@@ -1,4 +1,4 @@
-const CIRCLE_RADIUS = 4;
+const CIRCLE_RADIUS = 5;
 const WALL_CELL = 0;
 const EMPTY_CELL = 1;
 
@@ -39,7 +39,7 @@ class Maze {
         this.grid = this.generateGrid(gridCellsPerWidth, gridCellsPerHeight);
         this.gridCellWidth = this.width / this.grid.length;
         this.gridCellHeight = this.height / this.grid[0].length;
-        this.createMazeWalls(wallRadius);
+        this.startPosition = this.createMazeWalls(wallRadius);
     }
 
     mazeWidth() {
@@ -71,20 +71,20 @@ class Maze {
                 maze[i].push(EMPTY_CELL);
             }
         }
-    
+
         for (let i = 0; i < widthCells; ++i) {
             maze[i][0] = WALL_CELL;
             maze[i][widthCells - 1] = WALL_CELL;
         }
-    
+
         for (let i = 0; i < heightCells; ++i) {
             maze[0][i] = WALL_CELL;
             maze[widthCells - 1][i] = WALL_CELL;
         }
-    
+
         maze[1][0] = EMPTY_CELL;
         maze[widthCells - 2][heightCells - 1] = EMPTY_CELL;
-    
+
         const maxWallCells = 0.3 * widthCells * heightCells;
         let wallCells = 0;
         const maxTries = 1000;
@@ -95,67 +95,71 @@ class Maze {
             if (maze[x][y] !== EMPTY_CELL) {
                 continue;
             }
-    
+
             maze[x][y] = WALL_CELL;
-    
+
             if (!this.exist_path(maze, 1, 0, widthCells - 2, heightCells - 1)) {
                 maze[x][y] = EMPTY_CELL;
                 continue;
             }
-    
+
             ++wallCells;
         }
-    
+
         return maze;
     }
 
     exist_path(maze, startX, startY, endX, endY) {
         return this.dfs(maze, startX, startY, endX, endY, []);
     }
-    
+
     dfs(maze, startX, startY, endX, endY, visited) {
         if ((startX === endX) && (startY === endY)) {
             return true;
         }
-    
+
         if (visited.find(p => (p.x === startX) && (p.y === startY))) {
             return false;
         }
-    
+
         if (maze[startX][startY] === WALL_CELL) {
             return false;
         }
-    
+
         visited.push(new Vec2(startX, startY));
-    
+
         const points = [];
         if (maze[startX - 1][startY] === EMPTY_CELL) { points.push(new Vec2(startX - 1, startY)) }
         if (maze[startX][startY + 1] === EMPTY_CELL) { points.push(new Vec2(startX, startY + 1)) }
         if (maze[startX + 1][startY] === EMPTY_CELL) { points.push(new Vec2(startX + 1, startY)) }
         if (maze[startX][startY - 1] === EMPTY_CELL) { points.push(new Vec2(startX, startY - 1)) }
-    
+
         for (const p of points) {
             if (this.dfs(maze, p.x, p.y, endX, endY, visited)) {
                 return true;
             }
         }
-    
+
         return false;
     }
 
     createMazeWalls(radius) {
+        const xOffset = (this.width - this.mazeWidth() * 2 * radius + 2 * radius) / 2.0;
+        const yOffset = (this.height - this.mazeHeight() * 2 * radius + 2 * radius) / 2.0;
+
         for (let x = 0; x < this.maze.length; ++x) {
             for (let y = 0; y < this.maze[0].length; ++y) {
                 if (this.maze[x][y] === EMPTY_CELL) {
                     continue;
                 }
 
-                const x_offset = (this.width - this.mazeWidth() * 2 * radius + 2 * radius) / 2.0;
-                const y_offset = (this.height - this.mazeHeight() * 2 * radius + 2 * radius) / 2.0;
-                const position = new Vec2(x_offset + x * 2 * radius, y_offset + y * 2 * radius);
+                const position = new Vec2(xOffset + x * 2 * radius, yOffset + y * 2 * radius);
                 this.createStaticSquare(position, radius);
             }
         }
+
+        const startPosition = new Vec2(xOffset + 2 * radius, yOffset);
+        return startPosition;
     }
 
     createStaticSquare(position, radius) {
@@ -164,14 +168,14 @@ class Maze {
         this.addCircle(Circle.createStatic(Vec2.from(position).add(new Vec2(t, t)), radius / 2.5));
         this.addCircle(Circle.createStatic(Vec2.from(position).add(new Vec2(-t, t)), radius / 2.5));
         this.addCircle(Circle.createStatic(Vec2.from(position).add(new Vec2(t, -t)), radius / 2.5)),
-        this.addCircle(Circle.createStatic(Vec2.from(position).add(new Vec2(-t, -t)), radius / 2.5));
+            this.addCircle(Circle.createStatic(Vec2.from(position).add(new Vec2(-t, -t)), radius / 2.5));
     }
 
     update(elapsedSeconds) {
         timer += elapsedSeconds;
         if (timer > SPAWN_TIMER) {
-            this.addCircle(new Circle(new Vec2(175, 10), CIRCLE_RADIUS));
-            this.addCircle(new Circle(new Vec2(185, 12), CIRCLE_RADIUS));
+            this.addCircle(new Circle(new Vec2(this.startPosition.x - 5, 10), CIRCLE_RADIUS));
+            this.addCircle(new Circle(new Vec2(this.startPosition.x + 5, 12), CIRCLE_RADIUS));
             timer = 0;
         }
 
@@ -265,26 +269,6 @@ class Maze {
             }
         }
 
-        for (let i = 0; i < this.grid.length; ++i) {
-            for (let j = 0; j < this.grid[i].length; ++j) {
-                const items = this.grid[i][j].items;
-                for (let item of items) {
-                    if (item.position.x < CIRCLE_RADIUS) {
-                        item.position.x = CIRCLE_RADIUS;
-                    }
-                    if (item.position.x + CIRCLE_RADIUS > this.width) {
-                        item.position.x = this.width - CIRCLE_RADIUS;
-                    }
-                    if (item.position.y < CIRCLE_RADIUS) {
-                        item.position.y = CIRCLE_RADIUS;
-                    }
-                    if (item.position.y + CIRCLE_RADIUS > this.height) {
-                        item.position.y = this.height - CIRCLE_RADIUS;
-                    }
-                }
-            }
-        }
-
         this.updateBuckets();
     }
 
@@ -330,7 +314,17 @@ class Maze {
     addCircle(circle) {
         const x = Math.floor(circle.position.x / this.gridCellWidth);
         const y = Math.floor(circle.position.y / this.gridCellHeight);
-        this.grid[x][y].items.push(circle);    
+        if (this.grid[x] === undefined || this.grid[x][y] === undefined) {
+            return;
+        }
+        const maxGridCellCapacity = Math.floor(1.6 * (this.gridCellWidth / (2 * CIRCLE_RADIUS))
+            * (this.gridCellHeight / (2 * CIRCLE_RADIUS)));
+        let items = this.grid[x][y].items;
+        if (items.length > maxGridCellCapacity) {
+            return;
+        }
+
+        items.push(circle);
     }
 
     render(fpsAggregator) {
@@ -408,6 +402,21 @@ const app = () => {
     setInterval(() => {
         updateAndRender(maze, 1.0 / fps, fpsAggregator);
     }, frameTimeMs);
+
+
+    const resizeEnd = () => {
+        const [width, height] = adjustCanvasDimensions();
+        maze = new Maze(width, height);
+        fpsAggregator = new WindowDataAggregator(10);
+    }
+    let doIt;
+
+    window.addEventListener("resize", function (event) {
+        this.clearTimeout(doIt);
+        doIt = this.setTimeout(resizeEnd, 100);
+        // console.log(`resize: ${event}`);
+        // console.log(event);
+    }, true);
 }
 
 const updateAndRender = (maze, elapsedSeconds, fpsAggregator) => {
