@@ -1,9 +1,7 @@
 const CIRCLE_RADIUS = 5;
 const WALL_CELL = 0;
 const EMPTY_CELL = 1;
-
-let timer = 0;
-const SPAWN_TIMER = 0.30;
+const LIQUID_SPAWN_TIME = 0.3;
 
 class WindowDataAggregator {
     constructor(widnowLength) {
@@ -40,6 +38,8 @@ class Maze {
         this.gridCellWidth = this.width / this.grid.length;
         this.gridCellHeight = this.height / this.grid[0].length;
         this.startPosition = this.createMazeWalls(wallRadius);
+
+        this.liquidSpawnTimer = 0.0;
     }
 
     mazeWidth() {
@@ -172,11 +172,11 @@ class Maze {
     }
 
     update(elapsedSeconds) {
-        timer += elapsedSeconds;
-        if (timer > SPAWN_TIMER) {
+        this.liquidSpawnTimer += elapsedSeconds;
+        if (this.liquidSpawnTimer > LIQUID_SPAWN_TIME) {
             this.addCircle(new Circle(new Vec2(this.startPosition.x - 5, 10), CIRCLE_RADIUS));
             this.addCircle(new Circle(new Vec2(this.startPosition.x + 5, 12), CIRCLE_RADIUS));
-            timer = 0;
+            this.liquidSpawnTimer = 0.0;
         }
 
         const simulate = (c1, c2, substeps) => {
