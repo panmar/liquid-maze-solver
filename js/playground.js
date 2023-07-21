@@ -198,7 +198,6 @@ class Maze {
                     );
                     t1.normalize().mul(delta / substeps);
                     c2.position.add(t1);
-                    // c2.lastPosition = Vec2.from(c2.position);
                     return;
                 }
 
@@ -299,9 +298,6 @@ class Maze {
         }
 
         for (const item of toRelocate) {
-            // const x = Math.floor(item.position.x / cellWidth);
-            // const y = Math.floor(item.position.y / cellHeight);
-            // this.grid[x][y].items.push(item);
             this.addCircle(item);
         }
     }
@@ -404,13 +400,11 @@ const app = () => {
         maze = new Maze(width, height);
         fpsAggregator = new WindowDataAggregator(10);
     }
-    let doIt;
+    let resizeEndTimeout;
 
     window.addEventListener("resize", function (event) {
-        this.clearTimeout(doIt);
-        doIt = this.setTimeout(resizeEnd, 100);
-        // console.log(`resize: ${event}`);
-        // console.log(event);
+        this.clearTimeout(resizeEndTimeout);
+        resizeEndTimeout = this.setTimeout(resizeEnd, 100);
     }, true);
 }
 
@@ -438,21 +432,18 @@ class Vec2 {
     }
 
     add(other) {
-        // return new Vec2(this.x + other.x, this.y + other.y);
         this.x += other.x;
         this.y += other.y;
         return this;
     }
 
     sub(other) {
-        // return new Vec2(this.x - other.x, this.y - other.y);
         this.x -= other.x;
         this.y -= other.y;
         return this;
     }
 
     mul(value) {
-        // return new Vec2(this.x * value, this.y * value);
         this.x *= value;
         this.y *= value;
         return this;
@@ -460,7 +451,6 @@ class Vec2 {
 
     normalize() {
         const length = this.distance(new Vec2(0.0, 0.0));
-        // return new Vec2(this.x / length, this.y / length);
         this.x /= length;
         this.y /= length;
         return this;
