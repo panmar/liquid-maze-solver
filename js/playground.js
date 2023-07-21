@@ -255,21 +255,16 @@ class Maze {
                             }
                         }
                     }
+
+                    for (const item of items) {
+                        item.acceleration = new Vec2(0.0, 100.0);
+                        item.update(elapsedSeconds / substeps);
+                    }
                 }
             }
-        }
 
-        for (let i = 0; i < this.grid.length; ++i) {
-            for (let j = 0; j < this.grid[i].length; ++j) {
-                const items = this.grid[i][j].items;
-                for (let item of items) {
-                    item.acceleration = new Vec2(0.0, 100.0);
-                    item.update(elapsedSeconds);
-                }
-            }
+            this.updateBuckets();
         }
-
-        this.updateBuckets();
     }
 
     updateBuckets() {
