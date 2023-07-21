@@ -1,4 +1,3 @@
-const CIRCLE_RADIUS = 5;
 const WALL_CELL = 0;
 const EMPTY_CELL = 1;
 const LIQUID_SPAWN_TIME = 0.3;
@@ -40,6 +39,7 @@ class Maze {
         this.startPosition = this.createMazeWalls(wallRadius);
 
         this.liquidSpawnTimer = 0.0;
+        this.liquidCircleRadius = Math.floor(Math.min(this.gridCellWidth, this.gridCellHeight) / 9.0);
     }
 
     mazeWidth() {
@@ -174,8 +174,8 @@ class Maze {
     update(elapsedSeconds) {
         this.liquidSpawnTimer += elapsedSeconds;
         if (this.liquidSpawnTimer > LIQUID_SPAWN_TIME) {
-            this.addCircle(new Circle(new Vec2(this.startPosition.x - 5, 10), CIRCLE_RADIUS));
-            this.addCircle(new Circle(new Vec2(this.startPosition.x + 5, 12), CIRCLE_RADIUS));
+            this.addCircle(new Circle(new Vec2(this.startPosition.x - this.liquidCircleRadius - 1, 10), this.liquidCircleRadius));
+            this.addCircle(new Circle(new Vec2(this.startPosition.x + this.liquidCircleRadius + 1, 12), this.liquidCircleRadius));
             this.liquidSpawnTimer = 0.0;
         }
 
@@ -317,8 +317,8 @@ class Maze {
         if (this.grid[x] === undefined || this.grid[x][y] === undefined) {
             return;
         }
-        const maxGridCellCapacity = Math.floor(1.6 * (this.gridCellWidth / (2 * CIRCLE_RADIUS))
-            * (this.gridCellHeight / (2 * CIRCLE_RADIUS)));
+        const maxGridCellCapacity = Math.floor(1.6 * (this.gridCellWidth / (2 * this.liquidCircleRadius))
+            * (this.gridCellHeight / (2 * this.liquidCircleRadius)));
         let items = this.grid[x][y].items;
         if (items.length > maxGridCellCapacity) {
             return;
