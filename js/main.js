@@ -2,6 +2,9 @@ const WALL_CELL = 0;
 const EMPTY_CELL = 1;
 const CELL_RADIUS = 20;
 const LIQUID_RADIUS = 6;
+const MAX_SPAWN_COUNT = 2000;
+const SPAWN_TIMER = 0.075;
+const PATH_TIMER = 1.0;
 
 const generate_maze = (width, height) => {
     let maze = [];
@@ -135,24 +138,34 @@ const app = () => {
     }
 
     const fps = 30;
+    let frameInfo = { spawnTimer: 0.0, spawnCount: 0, pathTimer: 0.0 };
     setInterval(() => {
-        update(world, 1.0 / 30);
+        update(world, 1.0 / 30, frameInfo);
         render(world);
     }, 1000 * (1.0 / 30));
 }
 
-let spawnCount = 0;
-const maxSpawnCount = 2000;
-let timer = 0.0;
-const spawnTimer = 0.075;
-function update(world, elapsedSeconds) {
+function update(world, elapsedSeconds, frameInfo) {
     let startTime = new Date();
 
-    timer += elapsedSeconds;
-    if ((timer > spawnTimer) && (spawnCount < maxSpawnCount)) {
+    frameInfo.spawnTimer += elapsedSeconds;
+    frameInfo.pathTimer += elapsedSeconds;
+
+    if ((frameInfo.spawnTimer > SPAWN_TIMER) && (frameInfo.spawnCount < MAX_SPAWN_COUNT)) {
         world.circles.push(new Circle(new Point(6 * CELL_RADIUS, 2 * CELL_RADIUS), LIQUID_RADIUS));
-        timer = 0.0;
-        ++spawnCount;
+        frameInfo.spawnTimer = 0.0;
+        ++frameInfo.spawnCount;
+    }
+
+    if (frameInfo.pathTimer > PATH_TIMER) {
+        for (c of world.circles) {
+            if (c.static) {
+                continue;
+            }
+            c.path.push(Point.from(c.center));
+        }
+
+        frameInfo.pathTimer = 0.0
     }
 
     for (c of world.circles) {
@@ -214,6 +227,7 @@ function update(world, elapsedSeconds) {
     let i = 0;
     while (i < world.circles.length) {
         if (world.circles[i].isOutOfBounds(width, height)) {
+            bestPath = world.circles[i].path;
             let tmp = world.circles[i];
             world.circles[i] = world.circles[world.circles.length - 1];
             world.circles[world.circles.length - 1] = tmp;
@@ -237,11 +251,27 @@ function render(world) {
         c.draw(ctx);
     }
 
+    if (bestPath) {
+        renderPath(ctx, bestPath);
+    }
+
     {
         ctx.font = "20px Arial";
         ctx.fillStyle = "white";
         ctx.fillText(world.frameDuration.toString(), ctx.canvas.width - 40, 40);
     }
+}
+
+function renderPath(ctx, path) {
+    ctx.strokeStyle = "#ffa500";
+    ctx.globalAlpha = 0.1;
+    ctx.lineWidth = 5;
+    for (let i = 1; i < path.length; ++i) {
+        ctx.moveTo(path[i - 1].x, path[i - 1].y);
+        ctx.lineTo(path[i].x, path[i].y);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
 }
 
 class World {
@@ -292,6 +322,8 @@ class Point {
     }
 }
 
+let bestPath = [];
+
 class Circle {
     constructor(center, radius) {
         this.center = center;
@@ -299,6 +331,7 @@ class Circle {
         this.last_center = Point.from(this.center).sub(new Point(0, 5));
         this.acceleration = new Point(0.0, 0.0);
         this.static = false;
+        this.path = [Point.from(this.center)];
     }
 
     static createStatic(center, radius) {
@@ -313,6 +346,10 @@ class Circle {
         } else {
             ctx.fillStyle = "#3370d4";
         }
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+
         ctx.beginPath();
         ctx.arc(this.center.x, this.center.y, this.radius, 0, 2 * Math.PI, true);
         ctx.closePath();
@@ -324,41 +361,14 @@ class Circle {
     }
 
     update(elapsedSeconds) {
-        // const last_update_move = this.center.sub(this.last_center);
-        // const new_center = this.center.add(last_update_move)
-        //                               .add(
-        //                                 (this.acceleration.sub(last_update_move.mul(1.0))).mul(elapsedSeconds * elapsedSeconds)
-        //                               );
-
-        // this.last_center = Point.from(this.center);
-        // this.center = new_center;
-        // this.acceleration = new Point(0.0, 0.0);
-
         if (this.static) {
             return;
         }
-
 
         const velocity = this.center.sub(this.last_center);
         this.last_center = Point.from(this.center);
         this.center = this.center.add(velocity).add(this.acceleration.mul(elapsedSeconds * elapsedSeconds));
         this.acceleration = new Point(0.0, 0.0);
-
-        // if (this.center.x <= this.radius) {
-        //     this.center.x = this.radius + 1;
-        // }
-
-        // if (this.center.x >= (800 - this.radius)) {
-        //     this.center.x = 800 - this.radius - 1;
-        // }
-
-        // if (this.center.y <= this.radius) {
-        //     this.center.y = this.radius - 1;
-        // }
-
-        // if (this.center.y >= (800 - this.radius)) {
-        //     this.center.y = 800 - this.radius - 1;
-        // }
     }
 
     isOutOfBounds(width, height) {
