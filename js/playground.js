@@ -482,7 +482,7 @@ class Circle {
 
     render(ctx) {
         if (this.static) {
-            ctx.fillStyle = "#DDDDDD";
+            ctx.fillStyle = "#969696";
         } else {
             ctx.fillStyle = "#3370d4";
         }
@@ -490,14 +490,21 @@ class Circle {
         ctx.strokeStyle = "black";
         ctx.lineWidth = 1;
 
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI, true);
-        ctx.closePath();
-        ctx.fill();
+        if (this.static) {
+            ctx.beginPath();
+            ctx.rect(this.position.x - this.radius, this.position.y - this.radius, 2.0 * this.radius, 2.0 * this.radius);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI, true);
+            ctx.closePath();
+            ctx.fill();
 
-        ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
     }
 
     update(elapsedSeconds) {
