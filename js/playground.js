@@ -334,9 +334,9 @@ class Maze {
             const canvasElement = document.querySelector("#canvas");
             let canvas = document.querySelector("canvas");
             let ctx = canvas.getContext("2d");
-            ctx.font = "30px Arial";
+            ctx.font = "25px Arial";
             ctx.fillStyle = "white";
-            ctx.fillText(fpsAggregator.avg().toString(), this.width - 50, 50);
+            ctx.fillText(fpsAggregator.avg().toString() + " ms", this.width - 70, 50);
         }
     }
 
